@@ -2,23 +2,26 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth.js";
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
+
+app.use(cors());
 
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URI)
   .then(() => {
     app.listen(process.env.PORT || 5000, () => {
-      console.log("Servidor corriendo en puerto 5000");
+      console.log(
+        "Connected to MongoDB and server is running on port",
+        process.env.PORT || 5000
+      );
     });
   })
-  .catch((err) => console.log(err));
+  .catch((err) => console.error("Error connecting to MongoDB:", err));

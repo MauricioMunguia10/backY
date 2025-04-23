@@ -4,16 +4,26 @@ import jwt from "jsonwebtoken";
 
 export const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, lastName, username, email, password } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "El usuario ya existe" });
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({ message: "The email is used" });
+    }
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return res.status(400).json({ message: "The username is used" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = new User({ name, email, password: hashedPassword });
+    const newUser = new User({
+      name,
+      lastName,
+      username,
+      email,
+      password: hashedPassword,
+    });
     await newUser.save();
 
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
@@ -21,12 +31,18 @@ export const register = async (req, res) => {
     });
 
     res.status(201).json({
-      message: "Usuario creado correctamente",
+      message: "User created successfully",
       token,
-      user: { id: newUser._id, name: newUser.name, email: newUser.email },
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        lastName: newUser.lastName,
+        username: newUser.username,
+        email: newUser.email,
+      },
     });
   } catch (error) {
-    res.status(500).json({ message: "Error al registrar usuario" });
+    res.status(500).json({ message: error.message });
   }
 };
 
